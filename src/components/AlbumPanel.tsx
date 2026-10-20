@@ -7,6 +7,7 @@ import {
   isAlbumDetails,
   parseAlbumDetails,
 } from './albumParser'
+import { formatAlbumAsWiki } from './wikiFormatter'
 
 interface AlbumPanelProps {
   onClose: () => void
@@ -15,9 +16,11 @@ interface AlbumPanelProps {
 const initialProgressSteps: readonly ProgressStep[] = [
   { id: 'fetch', label: 'Fetch Album', state: 'pending' },
   { id: 'process', label: 'Parse Details', state: 'pending' },
+  { id: 'convert', label: 'Convert Wiki', state: 'pending' },
   { id: 'cleanup', label: 'Cleanup', state: 'pending' },
 ]
 
+const temporarySourceKey = 'endfield-wiki-tools:temporary-album-source'
 const temporaryAlbumKey = 'endfield-wiki-tools:temporary-album'
 
 const initialOutputText = `Album Page output
@@ -95,41 +98,58 @@ function AlbumPanel({ onClose }: AlbumPanelProps) {
       }
 
       const sourceHtml = await response.text()
-      const parsedAlbumDetails = parseAlbumDetails(sourceHtml, spotifyLink)
+      sessionStorage.setItem(temporarySourceKey, sourceHtml)
+      activeStep = 'process'
+      setStepState('fetch', 'completed')
+      log('[fetch] Stored Spotify album embed in temporary storage')
+      console.log('[fetch] Album embed stored in temporary storage')
+
+      await yieldToBrowser()
+      setStepState('process', 'loading')
+      log('[process] Parsing album details and songs...')
+      console.log('[process] Parsing album details and songs')
+      await yieldToBrowser()
+      const storedSource = sessionStorage.getItem(temporarySourceKey)
+
+      if (storedSource === null) {
+        throw new Error('Temporary album source is empty')
+      }
+
+      const parsedAlbumDetails = parseAlbumDetails(storedSource, spotifyLink)
       sessionStorage.setItem(
         temporaryAlbumKey,
         JSON.stringify(parsedAlbumDetails),
       )
-      activeStep = 'process'
-      setStepState('fetch', 'completed')
+      setStepState('process', 'completed')
       log(
-        `[fetch] Stored album details and ${parsedAlbumDetails.tracks.length} songs`,
+        `[process] Parsed ${parsedAlbumDetails.tracks.length} songs from album`,
       )
-      console.log('[fetch] Album details stored in temporary storage', {
+      console.log('[process] Album details parsed', {
         songs: parsedAlbumDetails.tracks.length,
       })
 
+      activeStep = 'convert'
       await yieldToBrowser()
-      setStepState('process', 'loading')
-      log('[process] Reading album details from temporary storage...')
-      console.log('[process] Reading album details from temporary storage')
+      setStepState('convert', 'loading')
+      log('[convert] Reading album details for wiki conversion...')
+      console.log('[convert] Reading album details for wiki conversion')
       await yieldToBrowser()
       const storedAlbum = sessionStorage.getItem(temporaryAlbumKey)
 
       if (storedAlbum === null) {
-        throw new Error('Temporary album storage is empty')
+        throw new Error('Temporary album details are empty')
       }
 
       const storedAlbumDetails: unknown = JSON.parse(storedAlbum)
 
       if (!isAlbumDetails(storedAlbumDetails)) {
-        throw new Error('Temporary album storage contains invalid data')
+        throw new Error('Temporary album details contain invalid data')
       }
 
-      setOutputText(JSON.stringify(storedAlbumDetails, null, 2))
-      setStepState('process', 'completed')
-      log('[process] Printed album details and songs to Output')
-      console.log('[process] Printed album details and songs to Output')
+      setOutputText(formatAlbumAsWiki(storedAlbumDetails))
+      setStepState('convert', 'completed')
+      log('[convert] Printed wiki format to Output')
+      console.log('[convert] Printed wiki format to Output')
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unknown workflow error'
@@ -139,21 +159,22 @@ function AlbumPanel({ onClose }: AlbumPanelProps) {
       console.error(`[${activeStep}] Workflow step failed`, error)
     } finally {
       setStepState('cleanup', 'loading')
-      log('[cleanup] Removing album details from temporary storage...')
-      console.log('[cleanup] Removing album details from temporary storage')
+      log('[cleanup] Removing temporary album data...')
+      console.log('[cleanup] Removing temporary album data')
       await yieldToBrowser()
 
       try {
+        sessionStorage.removeItem(temporarySourceKey)
         sessionStorage.removeItem(temporaryAlbumKey)
         setStepState('cleanup', 'completed')
-        log('[cleanup] Temporary album details removed')
-        console.log('[cleanup] Temporary album details removed')
+        log('[cleanup] Temporary album data removed')
+        console.log('[cleanup] Temporary album data removed')
       } catch (error) {
         setStepState('cleanup', 'failed')
         const message =
           error instanceof Error ? error.message : 'Unknown cleanup error'
         log(`[cleanup] Failed: ${message}`)
-        console.error('[cleanup] Failed to remove temporary DOM', error)
+        console.error('[cleanup] Failed to remove temporary album data', error)
       } finally {
         setIsProcessing(false)
       }
@@ -162,7 +183,7 @@ function AlbumPanel({ onClose }: AlbumPanelProps) {
 
   const albumConsoleInfo: readonly ConsoleInfo[] = [
     { label: 'Source', value: 'Spotify link' },
-    { label: 'Mode', value: 'Temporary DOM workflow' },
+    { label: 'Mode', value: 'Wiki conversion workflow' },
     { label: 'Last event', value: lastEvent },
   ]
 
