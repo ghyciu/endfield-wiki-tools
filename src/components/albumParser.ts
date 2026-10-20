@@ -3,6 +3,7 @@ export interface AlbumTrack {
   title: string
   artist: string
   duration: string
+  spotify: string
 }
 
 export interface AlbumDetails {
@@ -13,17 +14,61 @@ export interface AlbumDetails {
   tracks: AlbumTrack[]
 }
 
-function getRequiredText(
-  element: Element | null,
-  description: string,
-): string {
-  const text = element?.textContent?.trim()
+type JsonRecord = Record<string, unknown>
 
-  if (!text) {
+function asRecord(value: unknown): JsonRecord | null {
+  return typeof value === 'object' && value !== null
+    ? (value as JsonRecord)
+    : null
+}
+
+function getProperty(value: unknown, property: string): unknown {
+  return asRecord(value)?.[property]
+}
+
+function getRequiredString(value: unknown, description: string): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
     throw new Error(`Spotify embed is missing ${description}`)
   }
 
-  return text
+  return value.trim()
+}
+
+function getRequiredNumber(value: unknown, description: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new Error(`Spotify embed is missing ${description}`)
+  }
+
+  return value
+}
+
+function getSpotifyTrackId(uri: string, trackNumber: number): string {
+  const parts = uri.split(':')
+  const trackId = parts[2]
+
+  if (parts[0] !== 'spotify' || parts[1] !== 'track' || !trackId) {
+    throw new Error(`Spotify embed has an invalid ID for song ${trackNumber}`)
+  }
+
+  return trackId
+}
+
+function formatDuration(durationMilliseconds: number): string {
+  const totalSeconds = Math.round(durationMilliseconds / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+
+  return `${minutes.toString().padStart(2, '0')}:${seconds
+    .toString()
+    .padStart(2, '0')}`
+}
+
+function normalizeArtists(artists: string): string {
+  return artists
+    .split(',')
+    .map((artist) => artist.trim())
+    .filter(Boolean)
+    .join(', ')
 }
 
 export function parseAlbumDetails(
@@ -31,52 +76,77 @@ export function parseAlbumDetails(
   sourceUrl: string,
 ): AlbumDetails {
   const document = new DOMParser().parseFromString(sourceHtml, 'text/html')
-  const metadata = document.querySelector(
-    '[class*="CondensedMetadata_condensedMetadataContainer"]',
+  const nextDataElement = document.querySelector(
+    'script#__NEXT_DATA__[type="application/json"]',
   )
-  const metadataParts = metadata
-    ? Array.from(metadata.children)
-        .map((element) => element.textContent?.trim() ?? '')
-        .filter((part) => part.length > 0 && part !== '·')
-    : []
-
-  const title = metadataParts[0]
-  const artist = metadataParts[1]
   const coverUrl = document
     .querySelector('img[alt*="cover"]')
     ?.getAttribute('src')
     ?.trim()
-  const rows = Array.from(
-    document.querySelectorAll('[data-testid^="tracklist-row-"]'),
-  )
+  const nextDataText = nextDataElement?.textContent?.trim()
 
-  if (!title || !artist) {
-    throw new Error('Spotify embed is missing album title or artist')
+  if (!nextDataText) {
+    throw new Error('Spotify embed is missing structured album data')
   }
 
   if (!coverUrl) {
     throw new Error('Spotify embed is missing album cover art')
   }
 
-  if (rows.length === 0) {
+  const nextData: unknown = JSON.parse(nextDataText)
+  const entity = asRecord(
+    getProperty(
+      getProperty(
+        getProperty(
+          getProperty(getProperty(nextData, 'props'), 'pageProps'),
+          'state',
+        ),
+        'data',
+      ),
+      'entity',
+    ),
+  )
+  const trackList = getProperty(entity, 'trackList')
+
+  if (!entity || !Array.isArray(trackList) || trackList.length === 0) {
     throw new Error('Spotify embed does not contain any songs')
   }
 
-  const tracks = rows.map((row, index) => ({
-    number: Number.parseInt(
-      row.querySelector('[data-testid="playback-indicator"]')?.textContent ?? '',
-      10,
-    ) || index + 1,
-    title: getRequiredText(row.querySelector('h3'), `song ${index + 1} title`),
-    artist: getRequiredText(
-      row.querySelector('h4'),
-      `song ${index + 1} artist`,
-    ),
-    duration: getRequiredText(
-      row.querySelector('[data-testid="duration-cell"]'),
-      `song ${index + 1} duration`,
-    ),
-  }))
+  const title = getRequiredString(
+    getProperty(entity, 'name') ?? getProperty(entity, 'title'),
+    'album title',
+  )
+  const artist = normalizeArtists(
+    getRequiredString(getProperty(entity, 'subtitle'), 'album artist'),
+  )
+  const tracks = trackList.map((value, index) => {
+    const track = asRecord(value)
+    const trackNumber = index + 1
+    const duration = getRequiredNumber(
+      getProperty(track, 'duration'),
+      `song ${trackNumber} duration`,
+    )
+    const uri = getRequiredString(
+      getProperty(track, 'uri'),
+      `song ${trackNumber} Spotify URI`,
+    )
+
+    return {
+      number: trackNumber,
+      title: getRequiredString(
+        getProperty(track, 'title'),
+        `song ${trackNumber} title`,
+      ),
+      artist: normalizeArtists(
+        getRequiredString(
+          getProperty(track, 'subtitle'),
+          `song ${trackNumber} artist`,
+        ),
+      ),
+      duration: formatDuration(duration),
+      spotify: getSpotifyTrackId(uri, trackNumber),
+    }
+  })
 
   return {
     title,
@@ -115,6 +185,7 @@ function isAlbumTrack(value: unknown): value is AlbumTrack {
     typeof track.number === 'number' &&
     typeof track.title === 'string' &&
     typeof track.artist === 'string' &&
-    typeof track.duration === 'string'
+    typeof track.duration === 'string' &&
+    typeof track.spotify === 'string'
   )
 }
