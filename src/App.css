@@ -1,0 +1,143 @@
+.workspace {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background: #000;
+}
+
+.tools-panel {
+  flex: 0 0 248px;
+  min-height: 100vh;
+  padding: 28px 16px;
+  background: #000;
+  border-right: 1px solid #27272a;
+}
+
+.tools-panel__title {
+  margin: 0 0 28px;
+  padding: 0 12px;
+  color: #f4f4f5;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.tool-option {
+  display: flex;
+  width: 100%;
+  min-height: 42px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #a1a1aa;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.tool-option:hover,
+.tool-option--active {
+  border-color: #27272a;
+  background: #111113;
+  color: #fff;
+}
+
+.tool-option:focus-visible,
+.album-panel__close:focus-visible {
+  outline: 2px solid #a1a1aa;
+  outline-offset: 2px;
+}
+
+.tool-option__icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.album-panel {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+  background: #000;
+}
+
+.album-panel__progress {
+  margin: 0 28px;
+  padding: 28px 0;
+  border-bottom: 1px solid #1f1f22;
+}
+
+.album-panel__progress h3 {
+  margin: 0 0 16px;
+  color: #71717a;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.album-panel__header {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  border-bottom: 1px solid #27272a;
+}
+
+.album-panel__header h2 {
+  margin: 0;
+  color: #f4f4f5;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.album-panel__close {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #a1a1aa;
+  cursor: pointer;
+}
+
+.album-panel__close:hover {
+  border-color: #27272a;
+  background: #111113;
+  color: #fff;
+}
+
+.album-panel__close svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+@media (max-width: 560px) {
+  .tools-panel {
+    flex-basis: 190px;
+    padding: 24px 10px;
+  }
+
+  .album-panel__header {
+    padding: 0 16px;
+  }
+
+  .album-panel__progress {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+}

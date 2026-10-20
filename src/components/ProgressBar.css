@@ -1,0 +1,111 @@
+.progress-bar {
+  color: #a1a1aa;
+}
+
+.progress-bar__steps {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progress-bar__step {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar__marker {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  place-items: center;
+  margin-top: 1px;
+  border: 1px solid #3f3f46;
+  border-radius: 50%;
+  background: #000;
+}
+
+.progress-bar__step--completed .progress-bar__marker {
+  border-color: #d4d4d8;
+  background: #d4d4d8;
+  color: #000;
+}
+
+.progress-bar__step--loading .progress-bar__marker {
+  border-color: #d4d4d8;
+}
+
+.progress-bar__step--loading .progress-bar__spinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid #52525b;
+  border-top-color: #f4f4f5;
+  border-radius: 50%;
+  animation: progress-bar-spin 800ms linear infinite;
+}
+
+.progress-bar__pending-marker {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #52525b;
+}
+
+.progress-bar__marker svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.progress-bar__label {
+  max-width: 100%;
+  overflow: hidden;
+  color: #71717a;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-bar__step--completed .progress-bar__label,
+.progress-bar__step--loading .progress-bar__label {
+  color: #e4e4e7;
+}
+
+.progress-bar__connector {
+  position: absolute;
+  top: 9px;
+  right: calc(-50% + 9px);
+  left: calc(50% + 9px);
+  height: 1px;
+  background: #27272a;
+}
+
+.progress-bar__step--completed .progress-bar__connector {
+  background: #52525b;
+}
+
+@keyframes progress-bar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar__step--loading .progress-bar__spinner {
+    animation-duration: 1600ms;
+  }
+}
