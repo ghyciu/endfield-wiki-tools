@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  server: {
+    proxy: {
+      '/api/spotify': {
+        target: 'https://open.spotify.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/spotify/, ''),
+      },
+    },
+  },
 })
