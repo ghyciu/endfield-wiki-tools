@@ -44,6 +44,17 @@
   border-color: #d4d4d8;
 }
 
+.progress-bar__step--failed .progress-bar__marker {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+.progress-bar__failed-marker {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .progress-bar__step--loading .progress-bar__spinner {
   width: 10px;
   height: 10px;
@@ -81,7 +92,8 @@
 }
 
 .progress-bar__step--completed .progress-bar__label,
-.progress-bar__step--loading .progress-bar__label {
+.progress-bar__step--loading .progress-bar__label,
+.progress-bar__step--failed .progress-bar__label {
   color: #e4e4e7;
 }
 

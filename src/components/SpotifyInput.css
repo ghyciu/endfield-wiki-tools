@@ -1,0 +1,105 @@
+.spotify-input {
+  margin: 0 28px;
+  padding: 28px 0;
+  border-bottom: 1px solid #1f1f22;
+}
+
+.spotify-input h3 {
+  margin: 0 0 16px;
+  color: #71717a;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spotify-input__form {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.spotify-input__label {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  color: #a1a1aa;
+  font-size: 12px;
+}
+
+.spotify-input__controls {
+  display: flex;
+  gap: 8px;
+}
+
+.spotify-input__field {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  outline: none;
+  background: #09090b;
+  color: #f4f4f5;
+  font: inherit;
+  font-size: 12px;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.spotify-input__field::placeholder {
+  color: #52525b;
+}
+
+.spotify-input__field:focus {
+  border-color: #71717a;
+  background: #111113;
+}
+
+.spotify-input__button {
+  min-width: 68px;
+  padding: 10px 14px;
+  border: 1px solid #d4d4d8;
+  border-radius: 6px;
+  background: #d4d4d8;
+  color: #09090b;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.spotify-input__button:hover {
+  border-color: #fff;
+  background: #fff;
+}
+
+.spotify-input__button:disabled {
+  border-color: #52525b;
+  background: #52525b;
+  color: #a1a1aa;
+  cursor: not-allowed;
+}
+
+.spotify-input__button:focus-visible {
+  outline: 2px solid #a1a1aa;
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .spotify-input {
+    margin-right: 16px;
+    margin-left: 16px;
+  }
+
+  .spotify-input__form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .spotify-input__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}

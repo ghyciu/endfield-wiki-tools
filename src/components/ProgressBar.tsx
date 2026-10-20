@@ -1,6 +1,6 @@
 import './ProgressBar.css'
 
-export type ProgressStepState = 'pending' | 'loading' | 'completed'
+export type ProgressStepState = 'pending' | 'loading' | 'completed' | 'failed'
 
 export interface ProgressStep {
   id: string
@@ -41,6 +41,8 @@ function ProgressBar({
                 <svg viewBox="0 0 16 16" fill="none">
                   <path d="m4 8.5 2.5 2.5L12 5.5" />
                 </svg>
+              ) : step.state === 'failed' ? (
+                <span className="progress-bar__failed-marker">!</span>
               ) : step.state === 'loading' ? (
                 <span className="progress-bar__spinner" />
               ) : (

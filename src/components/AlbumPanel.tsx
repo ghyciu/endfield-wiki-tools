@@ -1,16 +1,171 @@
+import { useState } from 'react'
 import ProgressBar, { type ProgressStep } from './ProgressBar'
+import Console, { type ConsoleInfo } from './Console'
+import Output from './Output'
+import SpotifyInput from './SpotifyInput'
+import {
+  isAlbumDetails,
+  parseAlbumDetails,
+} from './albumParser'
 
 interface AlbumPanelProps {
   onClose: () => void
 }
 
-const albumProgressSteps: readonly ProgressStep[] = [
-  { id: 'assets', label: 'Assets', state: 'completed' },
-  { id: 'data', label: 'Data', state: 'loading' },
-  { id: 'pages', label: 'Pages', state: 'pending' },
+const initialProgressSteps: readonly ProgressStep[] = [
+  { id: 'fetch', label: 'Fetch Album', state: 'pending' },
+  { id: 'process', label: 'Parse Details', state: 'pending' },
+  { id: 'cleanup', label: 'Cleanup', state: 'pending' },
 ]
 
+const temporaryAlbumKey = 'endfield-wiki-tools:temporary-album'
+
+const initialOutputText = `Album Page output
+Enter a Spotify link and press Start to begin.`
+
 function AlbumPanel({ onClose }: AlbumPanelProps) {
+  const [progressSteps, setProgressSteps] = useState(initialProgressSteps)
+  const [outputText, setOutputText] = useState(initialOutputText)
+  const [consoleLines, setConsoleLines] = useState<string[]>([
+    '[album] Waiting for a Spotify link...',
+  ])
+  const [lastEvent, setLastEvent] = useState('Waiting for source data')
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  function log(message: string) {
+    setConsoleLines((currentLines) => [...currentLines, message])
+    setLastEvent(message.replace(/^\[[^\]]+\]\s*/, ''))
+  }
+
+  function setStepState(stepId: string, state: ProgressStep['state']) {
+    setProgressSteps((currentSteps) =>
+      currentSteps.map((step) =>
+        step.id === stepId ? { ...step, state } : step,
+      ),
+    )
+  }
+
+  async function yieldToBrowser() {
+    await new Promise<void>((resolve) => {
+      window.setTimeout(resolve, 0)
+    })
+  }
+
+  function getSpotifyEmbedProxyUrl(spotifyLink: string) {
+    const url = new URL(spotifyLink)
+
+    if (url.protocol !== 'https:' || url.hostname !== 'open.spotify.com') {
+      throw new Error('Only https://open.spotify.com links are supported')
+    }
+
+    const pathSegments = url.pathname.split('/').filter(Boolean)
+    const albumIndex = pathSegments.indexOf('album')
+    const albumId = pathSegments[albumIndex + 1]
+
+    if (albumIndex === -1 || !albumId) {
+      throw new Error('The Spotify link must point to an album')
+    }
+
+    return `/api/spotify/embed/album/${encodeURIComponent(albumId)}`
+  }
+
+    async function handleStart(spotifyLink: string) {
+    setIsProcessing(true)
+    setProgressSteps(
+      initialProgressSteps.map((step) => ({ ...step, state: 'pending' })),
+    )
+    setOutputText('Starting Album Page workflow...')
+    setConsoleLines([])
+    console.log('[album] Starting workflow', { spotifyLink })
+    log(`[album] Starting workflow for ${spotifyLink}`)
+
+    let activeStep = 'fetch'
+
+    try {
+      setStepState('fetch', 'loading')
+      log('[fetch] Getting Spotify album embed...')
+      console.log('[fetch] Getting Spotify album embed')
+      const proxyUrl = getSpotifyEmbedProxyUrl(spotifyLink)
+      log(`[fetch] Using local development proxy: ${proxyUrl}`)
+      console.log('[fetch] Using local development proxy', { proxyUrl })
+      const response = await fetch(proxyUrl)
+
+      if (!response.ok) {
+        throw new Error(`Spotify request failed with status ${response.status}`)
+      }
+
+      const sourceHtml = await response.text()
+      const parsedAlbumDetails = parseAlbumDetails(sourceHtml, spotifyLink)
+      sessionStorage.setItem(
+        temporaryAlbumKey,
+        JSON.stringify(parsedAlbumDetails),
+      )
+      activeStep = 'process'
+      setStepState('fetch', 'completed')
+      log(
+        `[fetch] Stored album details and ${parsedAlbumDetails.tracks.length} songs`,
+      )
+      console.log('[fetch] Album details stored in temporary storage', {
+        songs: parsedAlbumDetails.tracks.length,
+      })
+
+      await yieldToBrowser()
+      setStepState('process', 'loading')
+      log('[process] Reading album details from temporary storage...')
+      console.log('[process] Reading album details from temporary storage')
+      await yieldToBrowser()
+      const storedAlbum = sessionStorage.getItem(temporaryAlbumKey)
+
+      if (storedAlbum === null) {
+        throw new Error('Temporary album storage is empty')
+      }
+
+      const storedAlbumDetails: unknown = JSON.parse(storedAlbum)
+
+      if (!isAlbumDetails(storedAlbumDetails)) {
+        throw new Error('Temporary album storage contains invalid data')
+      }
+
+      setOutputText(JSON.stringify(storedAlbumDetails, null, 2))
+      setStepState('process', 'completed')
+      log('[process] Printed album details and songs to Output')
+      console.log('[process] Printed album details and songs to Output')
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unknown workflow error'
+      setStepState(activeStep, 'failed')
+      setOutputText(`Album Page workflow failed:\n${message}`)
+      log(`[${activeStep}] Failed: ${message}`)
+      console.error(`[${activeStep}] Workflow step failed`, error)
+    } finally {
+      setStepState('cleanup', 'loading')
+      log('[cleanup] Removing album details from temporary storage...')
+      console.log('[cleanup] Removing album details from temporary storage')
+      await yieldToBrowser()
+
+      try {
+        sessionStorage.removeItem(temporaryAlbumKey)
+        setStepState('cleanup', 'completed')
+        log('[cleanup] Temporary album details removed')
+        console.log('[cleanup] Temporary album details removed')
+      } catch (error) {
+        setStepState('cleanup', 'failed')
+        const message =
+          error instanceof Error ? error.message : 'Unknown cleanup error'
+        log(`[cleanup] Failed: ${message}`)
+        console.error('[cleanup] Failed to remove temporary DOM', error)
+      } finally {
+        setIsProcessing(false)
+      }
+    }
+  }
+
+  const albumConsoleInfo: readonly ConsoleInfo[] = [
+    { label: 'Source', value: 'Spotify link' },
+    { label: 'Mode', value: 'Temporary DOM workflow' },
+    { label: 'Last event', value: lastEvent },
+  ]
+
   return (
     <section className="album-panel" aria-labelledby="album-panel-title">
       <header className="album-panel__header">
@@ -26,10 +181,16 @@ function AlbumPanel({ onClose }: AlbumPanelProps) {
           </svg>
         </button>
       </header>
+      <SpotifyInput onStart={handleStart} disabled={isProcessing} />
       <section className="album-panel__progress" aria-labelledby="album-progress-title">
         <h3 id="album-progress-title">Progress</h3>
-        <ProgressBar steps={albumProgressSteps} ariaLabel="Album page progress" />
+        <ProgressBar steps={progressSteps} ariaLabel="Album page progress" />
       </section>
+      <Output text={outputText} />
+      <Console
+        debugText={consoleLines.join('\n')}
+        additionalInfo={albumConsoleInfo}
+      />
     </section>
   )
 }
