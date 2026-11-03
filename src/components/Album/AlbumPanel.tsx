@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import ProgressBar, { type ProgressStep } from './ProgressBar'
-import Console, { type ConsoleInfo } from './Console'
-import Output from './Output'
+import ProgressBar, { type ProgressStep } from '../common/ProgressBar'
+import Console, { type ConsoleInfo } from '../common/Console'
+import Output from '../common/Output'
 import SpotifyInput from './SpotifyInput'
+import ToolPanel from '../ToolPanel'
 import {
   isAlbumDetails,
   parseAlbumDetails,
 } from './albumParser'
-import { formatAlbumAsWiki } from './wikiFormatter'
+import { formatAlbumAsWiki } from '../common/wikiFormatter'
 
 interface AlbumPanelProps {
   onClose: () => void
@@ -188,20 +189,7 @@ function AlbumPanel({ onClose }: AlbumPanelProps) {
   ]
 
   return (
-    <section className="album-panel" aria-labelledby="album-panel-title">
-      <header className="album-panel__header">
-        <h2 id="album-panel-title">Album Page</h2>
-        <button
-          className="album-panel__close"
-          type="button"
-          aria-label="Close Album Page panel"
-          onClick={onClose}
-        >
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="m5 5 10 10M15 5 5 15" />
-          </svg>
-        </button>
-      </header>
+    <ToolPanel title="Album Page" panelId="album-panel" onClose={onClose}>
       <SpotifyInput onStart={handleStart} disabled={isProcessing} />
       <section className="album-panel__progress" aria-labelledby="album-progress-title">
         <h3 id="album-progress-title">Progress</h3>
@@ -212,7 +200,7 @@ function AlbumPanel({ onClose }: AlbumPanelProps) {
         debugText={consoleLines.join('\n')}
         additionalInfo={albumConsoleInfo}
       />
-    </section>
+    </ToolPanel>
   )
 }
 

@@ -46,7 +46,7 @@
 }
 
 .tool-option:focus-visible,
-.album-panel__close:focus-visible {
+.tool-panel__close:focus-visible {
   outline: 2px solid #a1a1aa;
   outline-offset: 2px;
 }
@@ -61,7 +61,7 @@
   stroke-width: 1.6;
 }
 
-.album-panel {
+.tool-panel {
   flex: 1;
   min-width: 0;
   min-height: 100vh;
@@ -83,7 +83,7 @@
   text-transform: uppercase;
 }
 
-.album-panel__header {
+.tool-panel__header {
   display: flex;
   min-height: 76px;
   align-items: center;
@@ -92,14 +92,14 @@
   border-bottom: 1px solid #27272a;
 }
 
-.album-panel__header h2 {
+.tool-panel__header h2 {
   margin: 0;
   color: #f4f4f5;
   font-size: 16px;
   font-weight: 600;
 }
 
-.album-panel__close {
+.tool-panel__close {
   display: grid;
   width: 34px;
   height: 34px;
@@ -112,13 +112,13 @@
   cursor: pointer;
 }
 
-.album-panel__close:hover {
+.tool-panel__close:hover {
   border-color: #27272a;
   background: #111113;
   color: #fff;
 }
 
-.album-panel__close svg {
+.tool-panel__close svg {
   width: 18px;
   height: 18px;
   stroke: currentColor;
@@ -132,7 +132,7 @@
     padding: 24px 10px;
   }
 
-  .album-panel__header {
+  .tool-panel__header {
     padding: 0 16px;
   }
 
@@ -140,4 +140,5 @@
     margin-right: 16px;
     margin-left: 16px;
   }
+
 }

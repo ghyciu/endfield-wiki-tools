@@ -1,4 +1,4 @@
-import type { AlbumDetails } from './albumParser'
+import type { AlbumDetails } from '../Album/albumParser'
 
 function escapeWikiValue(value: string): string {
   return value.replace(/\r?\n/g, ' ').replace(/\|/g, '&#124;').trim()
