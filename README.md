@@ -1,6 +1,28 @@
 # endfield-wiki-tools
 Endfield Wiki Tools
 
+## Getting started
+
+### Prerequisites
+
+Install the current [Node.js LTS release](https://nodejs.org/). npm is included with Node.js. After installation, open a new terminal and verify both are available:
+
+```sh
+node --version
+npm --version
+```
+
+### Install and run
+
+From the project directory, install the dependencies and start the development server:
+
+```sh
+npm install
+npm run dev
+```
+
+Open the local URL printed in the terminal (usually `http://localhost:5173`) in your browser. Press **Ctrl+C** in the terminal to stop the server.
+
 ## Album workflow
 
 In the Album Page panel, enter a Spotify album URL and select **Start**. The workflow:
