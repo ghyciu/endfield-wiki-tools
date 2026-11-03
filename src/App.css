@@ -68,13 +68,13 @@
   background: #000;
 }
 
-.album-panel__progress {
+.tool-panel__progress {
   margin: 0 28px;
   padding: 28px 0;
   border-bottom: 1px solid #1f1f22;
 }
 
-.album-panel__progress h3 {
+.tool-panel__progress h3 {
   margin: 0 0 16px;
   color: #71717a;
   font-size: 11px;
@@ -136,7 +136,7 @@
     padding: 0 16px;
   }
 
-  .album-panel__progress {
+  .tool-panel__progress {
     margin-right: 16px;
     margin-left: 16px;
   }

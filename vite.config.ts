@@ -15,6 +15,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/spotify/, ''),
       },
+      '/api/netease': {
+        target: 'https://music.163.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/netease/, ''),
+      },
     },
   },
 })

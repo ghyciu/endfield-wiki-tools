@@ -33,3 +33,14 @@ In the Album Page panel, enter a Spotify album URL and select **Start**. The wor
 4. Removes the temporary album data after processing, including when an earlier step fails.
 
 Each step is reflected in the progress bar and logged in both the in-app Console and the browser developer console. During local development, Vite proxies supported `open.spotify.com` requests through `/api/spotify`, avoiding browser CORS restrictions. Run the app with `npm run dev`; this proxy is not available in the production build.
+
+## Lyrics Finder workflow
+
+In the Lyrics Finder panel, enter a song name and artist and select **Start**. The workflow:
+
+1. Searches NetEase Cloud Music for the first matching song and gets its ID.
+2. Fetches the song lyrics using that ID.
+3. Removes lyric timestamps while preserving lyric lines and consecutive line breaks.
+4. Converts the lyrics to a `<poem>` wiki block and prints the result in the Output panel.
+
+The local Vite development server proxies the NetEase requests through `/api/netease` to avoid browser CORS restrictions. This proxy is not available in the production build.

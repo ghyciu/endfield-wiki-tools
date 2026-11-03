@@ -23,3 +23,7 @@ export function formatAlbumAsWiki(album: AlbumDetails): string {
     '{{Table end}}',
   ].join('\n')
 }
+
+export function formatLyricsAsWiki(lyrics: string): string {
+  return [`''<poem>`, lyrics, `</poem>''`].join('\n')
+}

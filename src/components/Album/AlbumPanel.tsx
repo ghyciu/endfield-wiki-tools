@@ -191,7 +191,7 @@ function AlbumPanel({ onClose }: AlbumPanelProps) {
   return (
     <ToolPanel title="Album Page" panelId="album-panel" onClose={onClose}>
       <SpotifyInput onStart={handleStart} disabled={isProcessing} />
-      <section className="album-panel__progress" aria-labelledby="album-progress-title">
+      <section className="tool-panel__progress" aria-labelledby="album-progress-title">
         <h3 id="album-progress-title">Progress</h3>
         <ProgressBar steps={progressSteps} ariaLabel="Album page progress" />
       </section>
